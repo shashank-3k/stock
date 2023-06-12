@@ -1,6 +1,4 @@
 import os
-
-
 # import tensorflow as tf
 # tf.test.gpu_device_name()
 # tf.keras.backend.set_image_data_format("channels_last")
@@ -44,6 +42,7 @@ import picard
 np.random.seed(42)
 random.seed(7)
 
+key = os.getenv("API_TOKEN", "64804202d365e9.21480491")
 token = "6481b11d245909.63698937"
 
 ##############################################
@@ -136,6 +135,67 @@ def get_columns(stock):
     return df
 ###########################################################
 
+def forecast_random_pca(df):
+    train_data, test_data = train_test_split(df, test_size=0.2, random_state=42)
+
+    y_train = train_data['Close']
+    y_test = test_data['Close']
+
+    X_train = train_data.drop(['date', 'Close'], axis=1)
+    X_test = test_data.drop(['date', 'Close'], axis=1)
+    rf_model = RandomForestRegressor(n_estimators=200, random_state=42)
+    rf_model.fit(X_train, y_train)
+
+    predictions = rf_model.predict(X_test)
+
+    last_30_days = df.tail(30).drop(['date', 'Close'], axis=1)
+    next_30_days_predictions = rf_model.predict(last_30_days)
+    return next_30_days_predictions
+
+
+######################################################
+def train_lstm(df_lstm):
+    features=['tweet_normalized','Close','Volume','normalized','Job_Value','Labour_values',
+            'Manufacturing_Value','CPI_Value','inflation_Value','Housing_value','0','1','2','3','4']
+    scaler = MinMaxScaler()
+    data_scaled = scaler.fit_transform(df_lstm[features])
+    n_steps = 100 # number of time steps to consider for each input
+    n_features = len(features)
+    model = Sequential()
+    model.add(LSTM(units=50, activation='relu', input_shape=(n_steps, n_features)))
+    model.add(Dense(15, activation='linear'))
+    model.compile(optimizer='adam', loss='mean_squared_error')
+    X_train = []
+    y_train = []
+    for i in range(n_steps, len(df_lstm)-1):
+        X_train.append(data_scaled[i-n_steps:i])
+        y_train.append(data_scaled[i+1, :]) # predict all 15 columns for next day
+    X_train, y_train = np.array(X_train), np.array(y_train)
+    print('X_train shape:', X_train.shape)
+    print('y_train shape:', y_train.shape)
+    model.fit(X_train, y_train, epochs=50, batch_size=32)
+    return model, scaler, n_steps, n_features, X_train, y_train
+#####################################################
+def lstm_predict(model, scaler, n_steps, n_features, df_lstm):
+    features = ['tweet_normalized', 'Close', 'Volume', 'normalized', 'Job_Value', 'Labour_values', 'Manufacturing_Value', 'CPI_Value', 'inflation_Value', 'Housing_value', '0','1','2','3','4']
+    data_scaled = scaler.transform(df_lstm[features])
+    X_test = []
+    X_test.append(data_scaled[-n_steps:])
+    X_test = np.array(X_test)
+    y_pred_scaled = model.predict(X_test)
+    y_pred = scaler.inverse_transform(y_pred_scaled)
+
+    for i in range(30):
+        X_test = np.append(X_test[:,1:,:], y_pred_scaled.reshape(1,1,n_features), axis=1)
+        y_pred_scaled = model.predict(X_test[:, -n_steps:, :])
+        y_pred = np.append(y_pred, scaler.inverse_transform(y_pred_scaled), axis=0)
+        #print(y_pred)
+
+    return y_pred[:,1]  # return Close column values
+
+#####################################################
+
+
 
 #####################Sidebar##################
 
@@ -162,268 +222,230 @@ df_get_column=get_columns(stock)
 st.dataframe(df_get_column.tail(5))
 
 if st.button('Predict'):
-    
-    prg = st.progress(0)
-    for i in range(100):
-        time.sleep(0.001)
-        prg.progress(i)
-    
-    api_key = "L82N6LJGLR5DP8L9"
-    ticker_symbol = stock
+    try:
+        prg = st.progress(0)
+        for i in range(100):
+            time.sleep(0.001)
+            prg.progress(i)
+        
+        api_key = "L82N6LJGLR5DP8L9"
+        ticker_symbol = stock
 
-    url = f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker_symbol}&apikey={api_key}"
-    response = requests.get(url)
+        url = f"https://www.alphavantage.co/query?function=BALANCE_SHEET&symbol={ticker_symbol}&apikey={api_key}"
+        response = requests.get(url)
 
-    data = response.json()["annualReports"]
-    balance_sheet = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+        data = response.json()["annualReports"]
+        balance_sheet = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
 
-    url = f"https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={ticker_symbol}&apikey={api_key}"
-    response = requests.get(url)
+        url = f"https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={ticker_symbol}&apikey={api_key}"
+        response = requests.get(url)
 
-    data = response.json()["annualReports"]
-    income_statement = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+        data = response.json()["annualReports"]
+        income_statement = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
 
-    url = f"https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker_symbol}&apikey={api_key}"
-    response = requests.get(url)
+        url = f"https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker_symbol}&apikey={api_key}"
+        response = requests.get(url)
 
-    data = response.json()["annualReports"]
-    cash_flow = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+        data = response.json()["annualReports"]
+        cash_flow = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
 
-    previous_row = balance_sheet.iloc[-1].tolist()
-    new_df = pd.DataFrame([previous_row], columns=balance_sheet.columns)
-    balance_sheet = balance_sheet.reset_index()
-    balance_sheet = pd.concat([balance_sheet, new_df], axis=0, ignore_index=True)
-    balance_sheet.at[5, 'fiscalDateEnding'] = '2023-12-31'
-    balance_sheet.set_index('fiscalDateEnding', inplace=True)
+        previous_row = balance_sheet.iloc[-1].tolist()
+        new_df = pd.DataFrame([previous_row], columns=balance_sheet.columns)
+        balance_sheet = balance_sheet.reset_index()
+        balance_sheet = pd.concat([balance_sheet, new_df], axis=0, ignore_index=True)
+        balance_sheet.at[5, 'fiscalDateEnding'] = '2023-12-31'
+        balance_sheet.set_index('fiscalDateEnding', inplace=True)
 
-    previous_row = income_statement.iloc[-1].tolist()
-    new_df = pd.DataFrame([previous_row], columns=income_statement.columns)
-    income_statement = income_statement.reset_index()
-    income_statement = pd.concat([income_statement, new_df], axis=0, ignore_index=True)
-    income_statement.at[5, 'fiscalDateEnding'] = '2023-12-31'
-    income_statement.set_index('fiscalDateEnding', inplace=True)
+        previous_row = income_statement.iloc[-1].tolist()
+        new_df = pd.DataFrame([previous_row], columns=income_statement.columns)
+        income_statement = income_statement.reset_index()
+        income_statement = pd.concat([income_statement, new_df], axis=0, ignore_index=True)
+        income_statement.at[5, 'fiscalDateEnding'] = '2023-12-31'
+        income_statement.set_index('fiscalDateEnding', inplace=True)
 
-    previous_row = cash_flow.iloc[-1].tolist()
-    new_df = pd.DataFrame([previous_row], columns=cash_flow.columns)
-    cash_flow = cash_flow.reset_index()
-    cash_flow = pd.concat([cash_flow, new_df], axis=0, ignore_index=True)
-    cash_flow.at[5, 'fiscalDateEnding'] = '2023-12-31'
-    cash_flow.set_index('fiscalDateEnding', inplace=True)
+        previous_row = cash_flow.iloc[-1].tolist()
+        new_df = pd.DataFrame([previous_row], columns=cash_flow.columns)
+        cash_flow = cash_flow.reset_index()
+        cash_flow = pd.concat([cash_flow, new_df], axis=0, ignore_index=True)
+        cash_flow.at[5, 'fiscalDateEnding'] = '2023-12-31'
+        cash_flow.set_index('fiscalDateEnding', inplace=True)
 
-    dfs = [balance_sheet, income_statement, cash_flow]
-    dfs = reduce(lambda left,right: pd.merge(left,right,on='fiscalDateEnding'), dfs)
-    dfs = dfs.apply(pd.to_numeric, errors='coerce')
-    nan_value_columns=dfs[dfs.columns[dfs.isna().any()]]
-    dfs=dfs.drop(nan_value_columns.columns,axis=1)
+        dfs = [balance_sheet, income_statement, cash_flow]
+        dfs = reduce(lambda left,right: pd.merge(left,right,on='fiscalDateEnding'), dfs)
+        dfs = dfs.apply(pd.to_numeric, errors='coerce')
+        nan_value_columns=dfs[dfs.columns[dfs.isna().any()]]
+        dfs=dfs.drop(nan_value_columns.columns,axis=1)
 
-    #print(sum(np.isnan(dfs)))
-
-
-    ########Scalar ICA
-
-    scaler = StandardScaler()
-    data_scaled = scaler.fit_transform(dfs)
-
-    ica = picard.Picard( random_state=42)
-    components = ica.fit_transform(data_scaled)
-
-    df_components = pd.DataFrame(components)
-    seq = ['2018-12-31', '2019-12-31', '2020-12-31', '2021-12-31', '2022-12-31', '2023-12-31']
-    df_components.insert(0, 'Date', seq)
+        #print(sum(np.isnan(dfs)))
 
 
+        ########Scalar ICA
 
-    ############Merge Data_Frame
+        scaler = StandardScaler()
+        data_scaled = scaler.fit_transform(dfs)
 
-    df2=df_components
-    df1=get_columns(stock)
-    df2=df2.reset_index()
-    df2.drop(columns=['index'])
+        ica = picard.Picard( random_state=42, fun='exp')
+        components = ica.fit_transform(data_scaled)
 
-    df2['Date'] = df2['Date'].apply(lambda x: x[:4])
-    df1['year'] = pd.to_datetime(df1['Date'], format='%Y-%m-%d').dt.year
-    df2['year'] = pd.to_datetime(df2['Date']).dt.year.astype(int)
+        df_components = pd.DataFrame(components)
+        seq = ['2018-12-31', '2019-12-31', '2020-12-31', '2021-12-31', '2022-12-31', '2023-12-31']
+        df_components.insert(0, 'Date', seq)
 
-    df2.rename(columns={0:"0",1: "1",2:"2",3:"3",4:"4"}, inplace=True)
-    merged_df = pd.merge(df1, df2, on='year')
-    merged_df.drop(['Date_y', 'year'], axis=1, inplace=True)
 
-    #df1=merged_df
-    #dfr=merged_df
 
-    #df1=df1.drop(['Open','High','Low','Dividends','NASDAQCOM','index'],axis=1)
-    #df1['Date_x'] = pd.to_numeric(df1['Date_x'])
-    
-    ####################News_Data
-    ###############################################################
-    url = 'https://eodhistoricaldata.com/api/sentiments?s={}&from=2000-01-01&to=2023-06-30&api_token=64804202d365e9.21480491'.format(stock)
-    response = requests.get(url)
-    data = response.json()
-    ticker = list(data.keys())[0]
-    sent_df = pd.DataFrame(data[ticker])
+        ############Merge Data_Frame
 
-    sent_df = sent_df[sent_df['date'] >= '2017-11-28']
-    df_new=merged_df
-    sent_df['date'] = pd.to_datetime(sent_df['date'])
-    df_new.set_index('Date_x', inplace=True)
-    sent_df.set_index('date', inplace=True)
+        df2=df_components
+        df1=get_columns(stock)
+        df2=df2.reset_index()
+        df2.drop(columns=['index'])
 
-    df_new.index = df_new.index.tz_localize(None)
-    new_merged_df = df_new.merge(sent_df, how='outer', left_index=True, right_index=True)
-    new_merged_df.fillna(method='ffill', inplace=True)
-    new_merged_df.fillna(method='bfill', inplace=True)
-    new_merged_df.dropna(inplace=True)
-    new_merged_df.reset_index(inplace=True)
-    new_merged_df.rename(columns={"level_0":"date"},inplace=True)
-    new_merged_df = new_merged_df.iloc[1: , :]
-    dfr=new_merged_df
+        df2['Date'] = df2['Date'].apply(lambda x: x[:4])
+        df1['year'] = pd.to_datetime(df1['Date'], format='%Y-%m-%d').dt.year
+        df2['year'] = pd.to_datetime(df2['Date']).dt.year.astype(int)
 
-    df1=new_merged_df
-    #dfr=merged_df
+        df2.rename(columns={0:"0",1: "1",2:"2",3:"3",4:"4"}, inplace=True)
+        merged_df = pd.merge(df1, df2, on='year')
+        merged_df.drop(['Date_y', 'year'], axis=1, inplace=True)
 
-    df1=df1.drop(['Open','High','Low','Dividends','NASDAQCOM','index','count'],axis=1)
-    df1['date'] = pd.to_numeric(df1['date'])
-    
-    ###################Tweet_Sentiment
-    
-    url = 'https://eodhistoricaldata.com/api/tweets-sentiments?s={}&from=2000-01-01&to=2023-06-30&api_token=64804202d365e9.21480491'.format(stock)
-    response = requests.get(url)
-    data = response.json()
-    ticker = list(data.keys())[0]
-    tweet_df = pd.DataFrame(data[ticker])
-    tweet_df = tweet_df.rename({'normalized': 'tweet_normalized'}, axis='columns')
-    tweet_df['date'] = pd.to_datetime(tweet_df['date'])
-    df_new2 = new_merged_df.merge(tweet_df, how='outer', left_index=True, right_index=True)
-    df_new2.fillna(method='ffill', inplace=True)
-    df_new2.fillna(method='bfill', inplace=True)
-    df_new2.dropna(axis = 0, inplace=True)
-    df_new2.rename(columns={"date_x":"date"},inplace=True)
-    df_new2 = df_new2.iloc[1: , :]
-    df_lstm=df_new2
-    dfr=df_new2
+        #df1=merged_df
+        #dfr=merged_df
+
+        #df1=df1.drop(['Open','High','Low','Dividends','NASDAQCOM','index'],axis=1)
+        #df1['Date_x'] = pd.to_numeric(df1['Date_x'])
+        
+        ####################News_Data
+        ###############################################################
+        try:
+            url = "https://eodhistoricaldata.com/api/sentiments?s={}&from=2000-01-01&to=2023-06-30&api_token={}".format(stock,key)
+            response = requests.get(url)
+            response.raise_for_status()
+        except Exception as e:
+                st.error("API Limit reached. Please try again later.")
+                st.write(f"Error details: {e}")
+                #st.experimental_rerun()  # Rerun the app to reset the state
+                st.stop()
+        
+        print(response.status_code)
+        data = response.json()
+        ticker = list(data.keys())[0]
+        sent_df = pd.DataFrame(data[ticker])
+
+        sent_df = sent_df[sent_df['date'] >= '2017-11-28']
+        df_new=merged_df
+        sent_df['date'] = pd.to_datetime(sent_df['date'])
+        df_new.set_index('Date_x', inplace=True)
+        sent_df.set_index('date', inplace=True)
+
+        df_new.index = df_new.index.tz_localize(None)
+        new_merged_df = df_new.merge(sent_df, how='outer', left_index=True, right_index=True)
+        new_merged_df.fillna(method='ffill', inplace=True)
+        new_merged_df.fillna(method='bfill', inplace=True)
+        new_merged_df.dropna(inplace=True)
+        new_merged_df.reset_index(inplace=True)
+        new_merged_df.rename(columns={"level_0":"date"},inplace=True)
+        new_merged_df = new_merged_df.iloc[1: , :]
+        dfr=new_merged_df
+
+        df1=new_merged_df
+        #dfr=merged_df
+
+        df1=df1.drop(['Open','High','Low','Dividends','NASDAQCOM','index','count'],axis=1)
+        df1['date'] = pd.to_numeric(df1['date'])
+        
+        ###################Tweet_Sentiment
+        try:
+            url = "https://eodhistoricaldata.com/api/tweets-sentiments?s={}&from=2000-01-01&to=2023-06-30&api_token={}".format(stock, key)
+            response = requests.get(url)
+            response.raise_for_status()
+        except Exception as e:
+                st.error("API Limit reached. Please try again later.")
+                st.write(f"Error details: {e}")
+                #st.experimental_rerun()  # Rerun the app to reset the state
+                st.stop()
+
+        data = response.json()
+        ticker = list(data.keys())[0]
+        tweet_df = pd.DataFrame(data[ticker])
+        tweet_df = tweet_df.rename({'normalized': 'tweet_normalized'}, axis='columns')
+        tweet_df['date'] = pd.to_datetime(tweet_df['date'])
+        df_new2 = new_merged_df.merge(tweet_df, how='outer', left_index=True, right_index=True)
+        df_new2.fillna(method='ffill', inplace=True)
+        df_new2.fillna(method='bfill', inplace=True)
+        df_new2.dropna(axis = 0, inplace=True)
+        df_new2.rename(columns={"date_x":"date"},inplace=True)
+        df_new2 = df_new2.iloc[1: , :]
+        df_lstm=df_new2
+        dfr=df_new2
+
+        #######################################################################
+
+        df_lstm=df_lstm.drop(['Open','High','Low','Dividends','NASDAQCOM','index','count_x','count_y','date_y'],axis=1)
+        df_lstm['date'] = pd.to_numeric(df_lstm['date'])
+        df_lstm.dropna(axis = 0, inplace=True)
+
+        #model training
+        model, scaler, n_steps, n_features, X_train, y_train = train_lstm(df_lstm)
 
     #######################################################################
+        
+        df=dfr
+        df=df.drop(['Open','High','Low','Dividends','NASDAQCOM','index','index','count_x','date_y','count_y'],axis=1)
 
-    ###########Function
-    
-    df_lstm=df_lstm.drop(['Open','High','Low','Dividends','NASDAQCOM','index','count_x','count_y','date_y'],axis=1)
-    df_lstm['date'] = pd.to_numeric(df_lstm['date'])
-    df_lstm.dropna(axis = 0, inplace=True)
+        df.columns = df.columns.astype(str)
+        
 
-    def train_lstm(df_lstm):
-        features=['tweet_normalized','Close','Volume','normalized','Job_Value','Labour_values',
-                'Manufacturing_Value','CPI_Value','inflation_Value','Housing_value','0','1','2','3','4']
-        scaler = MinMaxScaler()
-        data_scaled = scaler.fit_transform(df_lstm[features])
-        n_steps = 100 # number of time steps to consider for each input
-        n_features = len(features)
-        model = Sequential()
-        model.add(LSTM(units=50, activation='relu', input_shape=(n_steps, n_features)))
-        model.add(Dense(15, activation='linear'))
-        model.compile(optimizer='adam', loss='mean_squared_error')
-        X_train = []
-        y_train = []
-        for i in range(n_steps, len(df_lstm)-1):
-            X_train.append(data_scaled[i-n_steps:i])
-            y_train.append(data_scaled[i+1, :]) # predict all 15 columns for next day
-        X_train, y_train = np.array(X_train), np.array(y_train)
-        print('X_train shape:', X_train.shape)
-        print('y_train shape:', y_train.shape)
-        model.fit(X_train, y_train, epochs=50, batch_size=32)
-        return model, scaler, n_steps, n_features, X_train, y_train
+        Random=forecast_random_pca(df)
 
-    model, scaler, n_steps, n_features, X_train, y_train = train_lstm(df_lstm)
+        lstm=lstm_predict(model, scaler, n_steps, n_features, df_lstm)
+        #b=lstm[0]
+        #b=round(b,2)
+        #st.write("Next Day Prediction for:")
+        #st.write(b)
+        #st.write(a[0])
+        #average[0]=(lstm[0]+Random[0])/2
+        ava=(lstm[0]+Random[0])/2
+        avb=(lstm[6]+Random[6])/2
+        avc=(lstm[14]+Random[14])/2
+        
+        
+        columns =['Stock', 'Days', 'LSTM', 'Random Forest', 'Average']
+        name1=[stock,1,lstm[0],Random[0],ava]
+        name2=[stock,7,lstm[6],Random[6],avb]
+        name3=[stock,15,lstm[14],Random[14],avc]
+        
+        alg_vs_score=pd.DataFrame((name1,name2,name3), columns=columns)
+        
+        st.dataframe(alg_vs_score)
+        
+        #ticker1 = yf.Ticker(stock).info
+        #market_price1 = ticker1['regularMarketPrice']
+        #st.write("Actual Market Price:",market_price1)
+        
+        from transformers import AutoTokenizer, TFAutoModelForSequenceClassification
+        from transformers import pipeline
 
-    def lstm_predict(model, scaler, n_steps, n_features, df_lstm):
-        features = ['tweet_normalized', 'Close', 'Volume', 'normalized', 'Job_Value', 'Labour_values', 'Manufacturing_Value', 'CPI_Value', 'inflation_Value', 'Housing_value', '0','1','2','3','4']
-        data_scaled = scaler.transform(df_lstm[features])
-        X_test = []
-        X_test.append(data_scaled[-n_steps:])
-        X_test = np.array(X_test)
-        y_pred_scaled = model.predict(X_test)
-        y_pred = scaler.inverse_transform(y_pred_scaled)
-
-        for i in range(30):
-            X_test = np.append(X_test[:,1:,:], y_pred_scaled.reshape(1,1,n_features), axis=1)
-            y_pred_scaled = model.predict(X_test[:, -n_steps:, :])
-            y_pred = np.append(y_pred, scaler.inverse_transform(y_pred_scaled), axis=0)
-            #print(y_pred)
-
-        return y_pred[:,1]  # return Close column values
-#######################################################################
-    
-    df=dfr
-    df=df.drop(['Open','High','Low','Dividends','NASDAQCOM','index','index','count_x','date_y','count_y'],axis=1)
-
-    df.columns = df.columns.astype(str)
-    
+        tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
+        model = TFAutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert")
+        nlp = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
 
 
-    def forecast_random_pca(df):
-        train_data, test_data = train_test_split(df, test_size=0.2, random_state=42)
-
-        y_train = train_data['Close']
-        y_test = test_data['Close']
-
-        X_train = train_data.drop(['date', 'Close'], axis=1)
-        X_test = test_data.drop(['date', 'Close'], axis=1)
-        rf_model = RandomForestRegressor(n_estimators=200, random_state=42)
-        rf_model.fit(X_train, y_train)
-
-        predictions = rf_model.predict(X_test)
-
-        last_30_days = df.tail(30).drop(['date', 'Close'], axis=1)
-        next_30_days_predictions = rf_model.predict(last_30_days)
-        return next_30_days_predictions
-
-    Random=forecast_random_pca(df)
-
-    lstm=lstm_predict(model, scaler, n_steps, n_features, df_lstm)
-    #b=lstm[0]
-    #b=round(b,2)
-    #st.write("Next Day Prediction for:")
-    #st.write(b)
-    #st.write(a[0])
-    #average[0]=(lstm[0]+Random[0])/2
-    ava=(lstm[0]+Random[0])/2
-    avb=(lstm[6]+Random[6])/2
-    avc=(lstm[14]+Random[14])/2
-    
-    
-    columns =['Stock', 'Days', 'LSTM', 'Random Forest', 'Average']
-    name1=[stock,1,lstm[0],Random[0],ava]
-    name2=[stock,7,lstm[6],Random[6],avb]
-    name3=[stock,15,lstm[14],Random[14],avc]
-    
-    alg_vs_score=pd.DataFrame((name1,name2,name3), columns=columns)
-    
-    st.dataframe(alg_vs_score)
-    
-    #ticker1 = yf.Ticker(stock).info
-    #market_price1 = ticker1['regularMarketPrice']
-    #st.write("Actual Market Price:",market_price1)
-
-    from transformers import AutoTokenizer, AutoModelForSequenceClassification
-    from transformers import pipeline
-
-    tokenizer = AutoTokenizer.from_pretrained("ProsusAI/finbert")
-    model = AutoModelForSequenceClassification.from_pretrained("ProsusAI/finbert")
-    nlp = pipeline("sentiment-analysis", model=model, tokenizer=tokenizer)
-
-
-    ticker = yf.Ticker(stock)
-    news=ticker.news
-    st.header("News :")
-    i = 0
-    while (i < len(news)-2):
-        i = i + 1
-        st.markdown("News : {}".format(news[i]["title"]))
-        st.markdown("News Link : {}".format(news[i]["link"])) 
-        results = nlp(news[i]["title"])
-        results[0]["score"] = round(results[0]["score"], 2)
-        st.markdown("News Sentiment: **:blue[{}]**".format(results[0]))
-        #st.markdown("News Sentiment : {}".format(results))
-        st.markdown("""---""")
+        ticker = yf.Ticker(stock)
+        news=ticker.news
+        st.header("News :")
+        i = 0
+        while (i < len(news)-2):
+            i = i + 1
+            st.markdown("News : {}".format(news[i]["title"]))
+            st.markdown("News Link : {}".format(news[i]["link"])) 
+            results = nlp(news[i]["title"])
+            results[0]["score"] = round(results[0]["score"], 2)
+            st.markdown("News Sentiment: **:blue[{}]**".format(results[0]))
+            #st.markdown("News Sentiment : {}".format(results))
+            st.markdown("""---""")
+    except Exception as e:
+        st.error("System Issue. Please try again later.")
+        st.write(f"Error details: {e}")
 
 #if __name__ == '__main__':
 #    main()
