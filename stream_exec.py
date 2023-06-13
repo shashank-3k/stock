@@ -44,7 +44,6 @@ from app_functions import *
 np.random.seed(42)
 random.seed(7)
 
-
 #####################Sidebar##################
 
 
