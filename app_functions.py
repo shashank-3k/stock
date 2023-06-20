@@ -73,41 +73,46 @@ def forecast_random_pca(df):
 ###################################################################################################
 
 ##############################################
-job=pd.read_csv(r"./job (1).csv")
+job=pd.read_csv("./stock_csvs/job.csv")
 job.loc[len(job)] = ['2023-02', 71.68311]
 job.loc[len(job)] = ['2023-03', 71.68311]
 job.loc[len(job)] = ['2023-04', 71.68311]
 job.loc[len(job)] = ['2023-05', 71.68311]
 job.loc[len(job)] = ['2023-06', 71.68311]
-Labour=pd.read_csv(r"./Labour (1).csv")
+
+Labour=pd.read_csv("./stock_csvs/Labour.csv")
 Labour.loc[len(Labour)] = ['2023-02', 42]
 Labour.loc[len(Labour)] = ['2023-03', 42]
 Labour.loc[len(Labour)] = ['2023-04', 42]
 Labour.loc[len(Labour)] = ['2023-05', 42]
 Labour.loc[len(Labour)] = ['2023-06', 42]
-Manufacture_indexing=pd.read_csv(r"./Manufacture_indexing (1).csv")
+
+Manufacture_indexing=pd.read_csv("./stock_csvs/Manufacture_indexing.csv")
 Manufacture_indexing.drop("Unnamed: 0",axis=1,inplace=True)
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '02-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '03-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '04-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '05-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '06-2023']
-CPI=pd.read_csv(r"./CPI (1).csv")
+
+CPI=pd.read_csv("./stock_csvs/CPI.csv")
 CPI.drop("Unnamed: 0",axis=1,inplace=True)
 CPI.loc[len(CPI)] = [300.536, '2023-02']
 CPI.loc[len(CPI)] = [300.536, '2023-03']
 CPI.loc[len(CPI)] = [300.536, '2023-04']
 CPI.loc[len(CPI)] = [300.536, '2023-05']
 CPI.loc[len(CPI)] = [300.536, '2023-06']
-inflation=pd.read_csv(r"./inflation (2).csv")
 
-Housing=pd.read_csv(r"./housing_new_gg (1).csv")
+inflation=pd.read_csv("./stock_csvs/inflation.csv")
+
+Housing=pd.read_csv("./stock_csvs/housing_new_gg.csv")
 Housing.loc[Housing['Year-Months'] == '2023-02', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-03', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-04', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-05', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-06', 'Housing_value'] = 377
-nasdaq=pd.read_csv(r"./NASDAQCOM.csv")
+
+nasdaq=pd.read_csv("./stock_csvs/NASDAQCOM.csv")
 nasdaq['DATE'] = pd.to_datetime(nasdaq['DATE'])
 start_date = nasdaq['DATE'].max()
 end_date = datetime.datetime.today().strftime('%Y-%m-%d')

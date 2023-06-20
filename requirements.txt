@@ -7,3 +7,6 @@ scikit-learn
 python-picard==0.6
 tensorflow
 transformers
+pypdf2
+networkx
+nltk

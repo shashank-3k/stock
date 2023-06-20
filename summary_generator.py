@@ -6,9 +6,8 @@ from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 import streamlit as st
 
+stock_list = ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"]
 file_loc = "./reports/"
-nltk.download('punkt')
-nltk.download('stopwords')
 
 def preprocess_text(text):
     sentences = sent_tokenize(text)
@@ -50,7 +49,7 @@ def summarize(text, num_sentences=4):
 def summary_main():
     st.title("Auditor Report Summarizer")
 
-    stock = st.selectbox("Select a stock", ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"])
+    stock = st.selectbox("Select a stock", stock_list)
 
     pdf_file = file_loc + stock.lower() + ".pdf"
     
