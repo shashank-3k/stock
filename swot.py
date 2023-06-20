@@ -1,7 +1,7 @@
 import streamlit as st
 #st.header('Swot Analysis')
 
-def main():
+def swot_main():
     st.title("Swot Analysis")
     stock = st.selectbox("Select a stock", ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE", "WMT"])
     if stock=="AAPL":   
@@ -167,5 +167,5 @@ def main():
         # with open(r'C:\Users\pande\Downloads\tsla.txt', encoding='iso-8859-1') as f:
         # state_of_the_union = f.read()
 if __name__ == '__main__':
-    main()
+    swot_main()
 
