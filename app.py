@@ -7,6 +7,7 @@ from PIL import Image
 
 from Financial_Ratios import financial_main
 from stock_prediction import stock_main
+from summary import summary_main
 
 #####################Sidebar##################
 
@@ -34,6 +35,7 @@ def contact():
 pages = {
     "AI Stock Prediction": stock_main,
     "Financial Ratios": financial_main
+    "Auditor Report Summarizer": summary_main
 }
 
 # Create a sidebar navigation menu
