@@ -11,12 +11,17 @@ from summary_generator import summary_main
 
 #####################Sidebar##################
 
+lst = ['Balance Sheet','Income Statement','Cash Flow', 'Dividends', 'Volume', 'Stock Splits', 'Job_Value', 'Labour_values', 'Manufacturing_Value', 'CPI_Value', 'inflation_Value', 'Housing_value']
+s = ''
+for i in lst:
+    s += "- " + i + "\n"
+
 url="3kt.png"
 image = Image.open(url)
 st.sidebar.image(image, caption='3k Technologies – Smart Technology Solutions')
 st.sidebar.markdown("Forecasting Time Series Data - Stock Price ")
 st.sidebar.title("For Details on the Stock Data.")
-st.sidebar.markdown(":green[['Balance Sheet','Income Statement','Cash Flow', 'Dividends', 'Volume', 'Stock Splits', 'Job_Value', 'Labour_values', 'Manufacturing_Value', 'CPI_Value', 'inflation_Value', 'Housing_value']]")
+st.sidebar.markdown(s)
 
 ##################################################
 
