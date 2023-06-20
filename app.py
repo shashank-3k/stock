@@ -34,7 +34,7 @@ def contact():
 # Define your pages and their respective functions
 pages = {
     "AI Stock Prediction": stock_main,
-    "Financial Ratios": financial_main
+    "Financial Ratios": financial_main,
     "Auditor Report Summarizer": summary_main
 }
 
