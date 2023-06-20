@@ -7,7 +7,7 @@ from PIL import Image
 
 from Financial_Ratios import financial_main
 from stock_prediction import stock_main
-from summary import summary_main
+from summary_generator import summary_main
 
 #####################Sidebar##################
 
