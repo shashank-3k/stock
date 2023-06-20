@@ -4,7 +4,6 @@ from sklearn.preprocessing import MinMaxScaler
 from keras.models import Sequential
 from keras.layers import LSTM, Dense
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import mean_squared_error
 from sklearn.model_selection import train_test_split
 import yfinance as yf
 import random
@@ -49,7 +48,7 @@ def train_lstm(df_lstm):
     X_train, y_train = np.array(X_train), np.array(y_train)
     print('X_train shape:', X_train.shape)
     print('y_train shape:', y_train.shape)
-    model.fit(X_train, y_train, epochs=50, batch_size=32)
+    model.fit(X_train, y_train, epochs=30, batch_size=32)
     return model, scaler, n_steps, n_features, X_train, y_train
 
 ###################################################################################################
