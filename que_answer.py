@@ -23,7 +23,7 @@ os.environ["OPENAI_API_KEY"] = "sk-uMUrdt6itiilETyPgeY3T3BlbkFJL0yjXVkKJL7Nvx1pY
 
 
 
-def main():
+def qna_main():
     st.title("Auditor Report Summarizer")
     stock = st.selectbox("Select a stock", ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"])
     file_loc = "./reports/"
@@ -139,4 +139,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    qna_main()
