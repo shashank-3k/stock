@@ -10,3 +10,6 @@ transformers
 pypdf2
 networkx
 nltk
+langchain
+openai
+Pillow
