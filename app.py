@@ -9,6 +9,7 @@ from Financial_Ratios import financial_main
 from stock_prediction import stock_main
 from summary_generator import summary_main
 from swot import swot_main
+from que_answer import qna_main
 
 #####################Sidebar##################
 
@@ -40,9 +41,11 @@ def contact():
 # Define your pages and their respective functions
 pages = {
     "AI Stock Prediction": stock_main,
-    "Financial Ratios": financial_main,
     "Auditor Report Summarizer": summary_main,
+    "Auditor's Report - Health Check": qna_main,
+    "Financial Ratios": financial_main,
     "Audit Report SWOT Assessment": swot_main
+     
 }
 
 # Create a sidebar navigation menu
