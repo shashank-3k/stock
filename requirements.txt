@@ -13,3 +13,4 @@ nltk
 langchain
 openai
 Pillow
+chromadb
