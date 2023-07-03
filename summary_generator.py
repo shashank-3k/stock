@@ -62,7 +62,7 @@ def summary_main():
     start_page = st.number_input("Enter the start page number", min_value=1, max_value=num_pages, value=1, step=1)
     end_page = st.number_input("Enter the end page number", min_value=1, max_value=num_pages, value=num_pages, step=1)
 
-    if st.button("Enter"):
+    if st.button("Submit"):
         if start_page > end_page:
             st.error("Invalid page range! Please make sure the start page is before the end page.")
             return
@@ -79,7 +79,10 @@ def summary_main():
 
         st.write(f"Summary of pages {start_page}-{end_page} for {stock}:")
         for i, summary in enumerate(summaries):
-            st.markdown(f"Page {i + start_page}: {summary}\n")
+            page_number = i + start_page
+            st.markdown(f'<p style="text-align: justify;"><strong>Page {page_number}: </strong>{summary}</p>', unsafe_allow_html=True)
+
+
 
 
 
