@@ -11,63 +11,95 @@ import os
 import openai
 import time
 from PIL import Image
-#import flair
+import flair
 from transformers import AutoTokenizer, AutoModelForSequenceClassification
 from transformers import pipeline
 from nltk.tokenize import sent_tokenize
 import PyPDF2
+import os
 
 # set your OpenAI API key as an environment variable
-os.environ["OPENAI_API_KEY"] = "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"
+os.environ["OPENAI_API_KEY"] = "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"
 
 
 
 
 def qna_main():
-    st.title("Auditor Report Summarizer")
-    stock = st.selectbox("Select a stock", ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"])
-    file_loc = "./reports/"
-    pdf_file = file_loc + stock.lower() + ".txt"
-    with open(pdf_file, encoding='iso-8859-1') as f:
-          state_of_the_union = f.read()
+    st.title("Auditor Report Insights: The Key to Making Informed Financial Decisions")
+    stock = st.selectbox("Select a stock", ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "COST", "ADBE","META", "WMT"])
+    #file_loc = "./reports/"
+    #pdf_file = file_loc + stock.lower() + ".txt"
+    # with open(pdf_file, encoding='iso-8859-1') as f:
+    #       state_of_the_union = f.read()
+
+    stock_files = {
+        'AAPL': 'aapl.txt',
+        'AMZN': 'amzn.txt',
+        'GOOG': 'goog.txt',
+        'MSFT': 'msft.txt',
+        'TSLA': 'tsla.txt',
+        'WMT': 'wmt.txt',
+        'ADBE': 'adbe.txt',
+        'COST': 'cost.txt',
+        'META': 'meta.txt'
+    }
+
+
+    if stock in stock_files:
+        file_name = stock_files[stock]
+        file_path = 'reports/' + file_name
+        with open(file_path, encoding='iso-8859-1') as f:
+            state_of_the_union = f.read()
+
+
+    # if stock == 'AAPL':
+    #     file_path = os.path.join('reports', 'aaple.txt')
+    #     with open(file_path, encoding='iso-8859-1') as f:
+    #         state_of_the_union = f.read()
+    # elif stock == 'AMZN': 
+    #     file_path = os.path.join('reports', 'amzn.txt')
+    #     with open(file_path, encoding='iso-8859-1') as f:
+    #         state_of_the_union = f.read()
+
+
     
     # if stock == 'AAPL':
-    #     with open(r"C:\Users\pande\Downloads\aaple.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/aapl.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
     # elif stock=="AMZN": 
-    #     with open(r"C:\Users\pande\Downloads\amzn.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/amzn.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
         
     # elif stock=="GOOG":
-    #     with open(r"C:\Users\pande\Downloads\googl.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/googl.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read() 
           
     # elif stock=="MSFT":
-    #     with open(r"C:\Users\pande\Downloads\msft.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/msft.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="NVDA":
-    #     with open(r"C:\Users\pande\Downloads\nvda .txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/nvda .txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="TSLA":
-    #     with open(r"C:\Users\pande\Downloads\tsla.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/tsla.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="WMT":
-    #     with open(r"C:\Users\pande\Downloads\wmt.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/wmt.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="ADBE":
-    #     with open(r"C:\Users\pande\Downloads\adbe.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/adbe.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="COST":
-    #     with open(r"C:\Users\pande\Downloads\cost.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/cost.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
           
     # elif stock=="META":
-    #     with open(R"C:\Users\pande\Downloads\meta.txt", encoding='iso-8859-1') as f:
+    #     with open(r"./reports/meta.txt", encoding='iso-8859-1') as f:
     #       state_of_the_union = f.read()
         
          
