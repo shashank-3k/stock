@@ -8,7 +8,7 @@ import streamlit as st
 nltk.download('stopwords')
 
 
-stock_list = ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"]
+stock_list = ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META"]
 file_loc = "./reports/"
 
 def preprocess_text(text):
