@@ -5,6 +5,7 @@ import networkx as nx
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 import streamlit as st
+
 nltk.download('stopwords')
 
 
@@ -61,20 +62,24 @@ def summary_main():
     start_page = st.number_input("Enter the start page number", min_value=1, max_value=num_pages, value=1, step=1)
     end_page = st.number_input("Enter the end page number", min_value=1, max_value=num_pages, value=num_pages, step=1)
 
-    if start_page > end_page:
-        st.error("Invalid page range! Please make sure the start page is before the end page.")
-        return
+    if st.button("Enter"):
+        if start_page > end_page:
+            st.error("Invalid page range! Please make sure the start page is before the end page.")
+            return
 
-    summaries = []
-    for i in range(start_page - 1, end_page):
-        page = pdf_reader.pages[i]
-        page_text = page.extract_text()
-        page_text = re.sub(r'\s+', ' ', page_text)
-        page_text = page_text.strip()
-        summary = summarize(page_text, num_sentences=4)
-        summaries.append(summary)
+        with st.spinner("Generating summaries..."):
+            summaries = []
+            for i in range(start_page - 1, end_page):
+                page = pdf_reader.pages[i]
+                page_text = page.extract_text()
+                page_text = re.sub(r'\s+', ' ', page_text)
+                page_text = page_text.strip()
+                summary = summarize(page_text, num_sentences=4)
+                summaries.append(summary)
 
-    st.write(f"Summary of pages {start_page}-{end_page} for {stock}:")
-    for i, summary in enumerate(summaries):
-        st.markdown(f"Page {i + start_page}: {summary}\n")
+        st.write(f"Summary of pages {start_page}-{end_page} for {stock}:")
+        for i, summary in enumerate(summaries):
+            st.markdown(f"Page {i + start_page}: {summary}\n")
+
+
 
