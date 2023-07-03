@@ -5,6 +5,8 @@ import networkx as nx
 from nltk.corpus import stopwords
 from nltk.tokenize import sent_tokenize, word_tokenize
 import streamlit as st
+nltk.download('stopwords')
+
 
 stock_list = ["AAPL", "AMZN", "MSFT", "GOOG", "TSLA", "NVDA", "COST", "ADBE","META", "WMT"]
 file_loc = "./reports/"
