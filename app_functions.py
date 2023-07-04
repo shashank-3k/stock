@@ -79,6 +79,8 @@ job.loc[len(job)] = ['2023-03', 71.68311]
 job.loc[len(job)] = ['2023-04', 71.68311]
 job.loc[len(job)] = ['2023-05', 71.68311]
 job.loc[len(job)] = ['2023-06', 71.68311]
+job.loc[len(job)] = ['2023-07', 71.68311]
+job.loc[len(job)] = ['2023-08', 71.68311]
 
 Labour=pd.read_csv("./stock_csvs/Labour.csv")
 Labour.loc[len(Labour)] = ['2023-02', 42]
@@ -86,6 +88,8 @@ Labour.loc[len(Labour)] = ['2023-03', 42]
 Labour.loc[len(Labour)] = ['2023-04', 42]
 Labour.loc[len(Labour)] = ['2023-05', 42]
 Labour.loc[len(Labour)] = ['2023-06', 42]
+Labour.loc[len(Labour)] = ['2023-07', 42]
+Labour.loc[len(Labour)] = ['2023-08', 42]
 
 Manufacture_indexing=pd.read_csv("./stock_csvs/Manufacture_indexing.csv")
 Manufacture_indexing.drop("Unnamed: 0",axis=1,inplace=True)
@@ -94,6 +98,8 @@ Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '03-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '04-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '05-2023']
 Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '06-2023']
+Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '07-2023']
+Manufacture_indexing.loc[len(Manufacture_indexing)] = [259.904, '08-2023']
 
 CPI=pd.read_csv("./stock_csvs/CPI.csv")
 CPI.drop("Unnamed: 0",axis=1,inplace=True)
@@ -102,6 +108,8 @@ CPI.loc[len(CPI)] = [300.536, '2023-03']
 CPI.loc[len(CPI)] = [300.536, '2023-04']
 CPI.loc[len(CPI)] = [300.536, '2023-05']
 CPI.loc[len(CPI)] = [300.536, '2023-06']
+CPI.loc[len(CPI)] = [300.536, '2023-07']
+CPI.loc[len(CPI)] = [300.536, '2023-08']
 
 inflation=pd.read_csv("./stock_csvs/inflation.csv")
 
@@ -111,6 +119,8 @@ Housing.loc[Housing['Year-Months'] == '2023-03', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-04', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-05', 'Housing_value'] = 377
 Housing.loc[Housing['Year-Months'] == '2023-06', 'Housing_value'] = 377
+Housing.loc[Housing['Year-Months'] == '2023-07', 'Housing_value'] = 377
+Housing.loc[Housing['Year-Months'] == '2023-08', 'Housing_value'] = 377
 
 nasdaq=pd.read_csv("./stock_csvs/NASDAQCOM.csv")
 nasdaq['DATE'] = pd.to_datetime(nasdaq['DATE'])
@@ -170,4 +180,3 @@ def get_columns(stock):
     return df
 
 ###################################################################################################
-
