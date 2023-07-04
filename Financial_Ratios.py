@@ -59,24 +59,24 @@ def financial_main():
                 if not flag:
                     st.error("System at capacity....... Please try again later.")
                     st.stop()
-                data = response["annualReports"]
-                balance_sheet = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+                data_1 = response["annualReports"]
+                balance_sheet = pd.DataFrame(data_1).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
 
                 #url = f"https://www.alphavantage.co/query?function=INCOME_STATEMENT&symbol={ticker_symbol}&apikey={api_key}"
                 flag, response = make_api_request_av(stock=stock, func="INCOME_STATEMENT")
                 if not flag:
                     st.error("System at capacity....... Please try again later.")
                     st.stop()
-                data = response["annualReports"]
-                income_statement = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+                data_2 = response["annualReports"]
+                income_statement = pd.DataFrame(data_2).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
                 
                 #url = f"https://www.alphavantage.co/query?function=CASH_FLOW&symbol={ticker_symbol}&apikey={api_key}"
                 flag, response = make_api_request_av(stock=stock, func="INCOME_STATEMENT")
                 if not flag:
                     st.error("System at capacity....... Please try again later.")
                     st.stop()
-                data = response["annualReports"]
-                cash_flow = pd.DataFrame(data).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
+                data_3 = response["annualReports"]
+                cash_flow = pd.DataFrame(data_3).set_index("fiscalDateEnding").iloc[::-1].drop(columns="reportedCurrency")
 
             
                 previous_row = balance_sheet.iloc[-1].tolist()
@@ -102,7 +102,8 @@ def financial_main():
                 dfs.drop(dfs.filter(regex='_y$').columns, axis=1, inplace=True)
                 dfs = dfs.apply(pd.to_numeric, errors='coerce')
                 nan_value_columns=dfs[dfs.columns[dfs.isna().any()]]
-                dfs=dfs.drop(nan_value_columns.columns,axis=1)
+                #dfs=dfs.drop(nan_value_columns.columns,axis=1)
+                dfs=dfs.fillna(value=0.1)
                 #dfs.to_csv("dfs_fin_ratio.csv")
                 ratios = pd.DataFrame()
                 ratios['ROE'] = dfs['netIncome'] / dfs['totalShareholderEquity']
@@ -241,5 +242,8 @@ def financial_main():
 
 
         except Exception as e:
-            st.error("System Issue. Please try again later.")
-            st.write(f"Error details: {e}")
+            if 'annualReports' in str(e):
+                st.error("System Issue. Please Hard Reload the webpage(Ctrl + Shift + R)")
+            else: 
+                st.error("System Issue. Please try again later.")
+                st.write(f"Error details: {e}")
