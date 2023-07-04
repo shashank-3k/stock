@@ -1,4 +1,3 @@
-
 # app.py
 import streamlit as st
 
@@ -54,7 +53,3 @@ def contact():
 
 # Run the function corresponding to the selected page
 pages[selection]()
-
-
-
-
