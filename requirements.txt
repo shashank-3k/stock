@@ -4,7 +4,7 @@ numpy
 yfinance
 keras
 scikit-learn
-python-picard==0.6
+python-picard==0.7
 tensorflow
 transformers
 pypdf2
