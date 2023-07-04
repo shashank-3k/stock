@@ -251,4 +251,3 @@ def stock_main():
             st.error("System Issue. Please try again later.")
             st.write(f"Error details: {e}")
             print (e)
-
