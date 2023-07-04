@@ -22,6 +22,20 @@ url="3kt.png"
 image = Image.open(url)
 st.sidebar.image(image, caption='3k Technologies – Smart Technology Solutions')
 st.sidebar.markdown("Forecasting Time Series Data - Stock Price ")
+
+# Define your pages and their respective functions
+pages = {
+    "AI Stock Prediction": stock_main,
+    "Auditor Report Summarizer": summary_main,
+    "Auditor's Report - Health Check": qna_main,
+    "Financial Ratios": financial_main,
+    "Audit Report SWOT Assessment": swot_main
+     
+}
+
+# Create a sidebar navigation menu
+selection = st.sidebar.radio("Navigation", list(pages.keys()))
+
 st.sidebar.title("For Details on the Stock Data.")
 st.sidebar.markdown(s)
 
@@ -38,18 +52,9 @@ def contact():
     st.title("Contact Page")
     st.write("You can reach us on the Contact Page.")
 
-# Define your pages and their respective functions
-pages = {
-    "AI Stock Prediction": stock_main,
-    "Auditor Report Summarizer": summary_main,
-    "Auditor's Report - Health Check": qna_main,
-    "Financial Ratios": financial_main,
-    "Audit Report SWOT Assessment": swot_main
-     
-}
-
-# Create a sidebar navigation menu
-selection = st.sidebar.radio("Navigation", list(pages.keys()))
-
 # Run the function corresponding to the selected page
 pages[selection]()
+
+
+
+
