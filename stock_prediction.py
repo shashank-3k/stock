@@ -41,6 +41,8 @@ def stock_main():
     stock =st.selectbox('Enter the stock here :',mynewlist)
     st.write('The stock name is', stock)
 
+
+
     df_get_column=get_columns(stock)
     st.dataframe(df_get_column.tail(5))
 
