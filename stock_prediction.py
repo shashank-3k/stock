@@ -108,7 +108,7 @@ def stock_main():
                 scaler = StandardScaler()
                 data_scaled = scaler.fit_transform(dfs)
 
-                ica = picard.Picard(random_state=42, fun='exp', whiten='unit-variance')
+                ica = picard.Picard(random_state=42, fun='exp', whiten=False)
                 components = ica.fit_transform(data_scaled)
 
                 df_components = pd.DataFrame(components)
