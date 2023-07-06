@@ -248,6 +248,8 @@ def stock_main():
 
                 st.success("Prediction complete!")    
         except Exception as e:
-            st.error("System Issue. Please try again later.")
-            st.write(f"Error details: {e}")
-            print (e)
+            if 'annualReports' in str(e):
+                st.error("System Issue. Please Hard Reload the webpage(Ctrl + Shift + R)")
+            else: 
+                st.error("System Issue. Please try again later.")
+                st.write(f"Error details: {e}")
